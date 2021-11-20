@@ -1,0 +1,102 @@
+---
+title: "Univariate Analysis"
+author: "Robert Cline"
+date: "11/20/2021"
+output:
+  html_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Jaccard Similarity Test  
+
+
+[jaccur similarity test](https://www.youtube.com/watch?v=mWL89jrWtj0)
+
+[Jaccard similarity in R from r-bloggers](https://www.r-bloggers.com/2021/11/how-to-calculate-jaccard-similarity-in-r/)  
+
+[Mathematics in R Markdown](https://rpruim.github.io/s341/S19/from-class/MathinRmd.html)
+
+$Jaccard(A,B) =  \frac {|A \cup B|}{|A \cap B|}$  
+ 
+
+Jaccard Example:  
+
+```{r}  
+
+
+a <- c(1,5,8,10,22,14,15,16,2,7)
+b <- c(10,12,13,2,7,9,2,7,23,15)
+```
+
+Jaccard function 
+```{r}
+jaccard <- function(a, b) {
+    intersection = length(intersect(a, b))
+    union = length(a) + length(b) - intersection
+    return (intersection/union)
+}
+```
+
+
+The Jaccard Similarity between the two lists is 0.25. As mentioned above greater the number closer to the data sets.   
+This also works with strings.  
+
+* 0 = no similarity  
+* 1 = match exactly  
+```{r}
+jaccard(a,b)
+```
+
+
+Calculate the distance between two sets  
+* 1-jaccard(a, b)  
+
+```{r}
+a <- c(1,5,8,10,22,14,15,16,2,7)
+b <- c(10,12,13,2,7,9,2,7,23,15)
+1-jaccard(a, b)
+```
+
+If you’re looking for a way to calculate the Jaccard similarity matrix, the vegan package is a good place to start. Many other similarities/dissimilarity measures can be calculated with the vegdist() function.  
+
+### [More tests from Statistics Globe](https://statisticsglobe.com/compare-vectors-and-find-differences-in-r)  
+
+
+Identical ?  
+* identical(a,b)  
+* a=b  
+```{r}
+
+identical(a, b) 
+```
+
+Which vector elements are the same  
+* a==b
+```{r}
+
+a==b
+```
+
+
+Which elements of first exist in the second using *%in%*  
+
+```{r}
+a %in% b
+```
+
+Find elements that exist in the first & second using *intersect()*  
+```{r}
+
+intersect(a, b)
+```
+
+Find elements that exist in the first, but not in the second  *setdiff()*  
+```{r}
+
+setdiff(a,b)
+```
+

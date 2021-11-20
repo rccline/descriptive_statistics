@@ -1,0 +1,231 @@
+---
+title: "counting"
+author: "Robert Cline"
+date: "11/19/2021"
+output:
+  html_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE) 
+
+library(tabbycat)
+library(tidyverse)
+library(gt)
+library(DT)
+```
+
+[Packages for beautiful tables](https://rfortherestofus.com/2019/11/how-to-make-beautiful-tables-in-r/)  
+
+[tabbycat  package](https://github.com/olihawkins/tabbycat)   
+
+Univeriate analysis  
+* summary statistics
+  - determine value center & spread
+* frequency analyis 
+* charts to represent the distribution of values  
+
+Boxplot 5 number summary  
+* minimum value
+* maximum value
+* top quartile  
+* averate value ? 
+
+histogram
+
+density curve
+* distr shape (one or more peaks; skew) 
+
+
+### 1. List of functions  
+* cat_count  
+* cat_vcount  
+* cat_compare  
+* cat_contrast  
+* cat_summarize  
+
+
+### 2. Counting functions  
+cat_count  
+cat_count calculates the frequency of discrete values in the column of a dataframe and returns the counts and percentages as a tibble. This function operates on columns in dataframes, but an equivalent function called cat_vcount provides the same functionality for vectors. Call the function with a dataframe and the name of the column to count.  
+
+
+```{r}
+mpg <- ggplot2::mpg
+
+ 
+
+
+
+cat_count(mpg, "class") %>% 
+gt()
+```
+cat_vcount  
+cat_vcount is equivalent to cat_count but works directly on vectors: it calculates the frequency of discrete values in a vector and returns the counts and percentages as a tibble. cat_vcount can handle a wider range of inputs than cat_count but it does not fit as easily into pipelines. Call the function with a vector to count. 
+
+```{r}
+mpg <- ggplot2::mpg
+
+cat_vcount(mpg$class) %>% 
+  gt()
+```
+ 
+#### 2.1. NA handling for counting functions
+By default, if any NAs exist in the data their frequency is included in the results, but you can remove this by setting the *na.rm* argument to *TRUE*. This means the percentages are caclulated excluding NAs (i.e. based on the the counts shown in the table).   
+
+```{r}
+# Set the class of the first observation to NA
+mpg[1, ]$class <- NA
+
+# Call cat_count with defaults
+cat_count(mpg, "class") %>% 
+  gt() %>% 
+   tab_header("cat_count includes NA's", subtitle = "NULL")
+```
+
+
+```{r}
+# Call cat_count with na.rm set to TRUE
+cat_count(mpg, "class", na.rm = TRUE) %>% 
+  gt() %>% 
+  tab_header("Remove NA's", subtitle = "na.rm=TRUE")
+
+```
+
+### 3. Comparison functions
+cat_compare
+cat_compare calculates the distribution of one categorical variable within the groups of another categorical variable and returns the counts and percentages as a tibble. It is essentially a cross tabulation of the two variables with column-wise percentages. Call the function with a dataframe and provide:
+
+1. row_cat – the variable to distribute down the rows
+2. col_cat – the variable to split into groups along the columns  
+
+```{r}
+library(tabbycat)
+mpg <- ggplot2::mpg
+
+cat_compare(mpg, "class", "cyl") %>% 
+  gt() %>% 
+  tab_header("cat_compare()", subtitle = "The Var to distribute down rows")
+```
+
+### cat_contrast
+cat_contrast caculates the *frequency* of discrete values in one categorical variable for each of two mutually exclusive groups within another categorical variable and returns the counts and percentages as a tibble. This lets you see if the distribution of a variable within a particular group differs from the distribution in the rest of the dataset. Call the function with a dataframe and provide:
+
+1. row_cat – the variable to distribute down the rows  
+2. col_cat – the variable to split into two exclusive groups along the columns  
+3. col_group – the name of the group in col_cat to contrast against the rest of the dataset  
+
+```{r}
+mpg <- ggplot2::mpg
+
+cat_contrast(mpg, "class", "manufacturer", "toyota") %>% 
+   gt() %>% 
+  tab_header("cat_contrast()", subtitle = "Frequecy Counts & Percentages")
+
+```
+
+### 3.1. NA handling for comparison functions  
+By default, if any NAs exist in the data their frequency is included in both the row and column results. So there is a row for observations containing NAs in row_cat, and columns showing the number and percentage of NAs found in col_cat for each group in row_cat.  
+
+```{r}
+# Set the class of the first observation to NA
+mpg[1, ]$class <- NA
+
+# Set the manufacturer of the second observation to NA
+mpg[2, ]$manufacturer <- NA
+
+# Call cat_contrast with defaults
+cat_contrast(mpg, "class", "manufacturer", "toyota") %>% 
+   gt() %>% 
+  tab_header("cat_contrast() with defaults", subtitle = "Frequecy Counts & Percentages - Counts NA's")
+
+```
+
+This default behaviour can be changed through three boolean arguments: na.rm.row, na.rm.col, and na.rm. Setting each of these arguments to TRUE has the following effects:
+
+na.rm.row – removes the row for NAs from the row results
+na.rm.col – removes the columns for NAs from the column results
+na.rm – removes both the rows and columns of NAs from the results  
+
+```{r}
+# Call cat_contrast with na.rm.row set to TRUE
+cat_contrast(mpg, "class", "manufacturer", "toyota", na.rm.row = TRUE) %>% gt() %>% 
+  tab_header("cat_contrast() remove NA's", subtitle = "Remove NA from row, col or both")
+  
+```
+
+**Note** that while removing the columns for NAs from the column results simply changes which columns are shown in the results table, removing the row for NAs from the row results affects the data in the table, because the percentage frequencies are calculated based on the rows shown. In other words, na.rm.row lets you calculate the percentage frequencies with or without NAs. This is consistent with the behaviour of cat_count and cat_vcount.
+
+The na.rm argument is a convenience which simply sets na.rm.row and na.rm.col to the same value. If it is set, it takes priority over both of those arguments, otherwise it is ignored.  
+
+### 4. Summarising functions  
+cat_summarise  
+cat_summarise (or cat_summarize) calculates summary statistics for a numerical variable for each group within a categorical variable. Call the function with a dataframe and provide:  
+
+1. cat – the categorical variable for which summaries will be calculated  
+2. num – the numerical variable to summarise   
+
+```{r}
+mpg <- ggplot2::mpg
+
+cat_summarise(mpg, "class", "hwy") %>% 
+  gt() %>% 
+  tab_header("Calculate summary statistics", subtitle = "cat_summarize; NA's shown by default")
+```
+
+### 4.1. NA handling for cat_summarise  
+In cat_summarise, *NAs are always ignored* in calculating the summary statistics for each group in cat. But *the number of NAs in each group is shown* in a column in the table so you can see the potential impact of NAs on the calculation of these statistics. By default, a row showing summary statistics for observations that are NA in cat is included in the table, but *this can be turned off by setting na.rm to TRUE*. You can see these behaviours in the following example.  
+
+```{r}
+# Set the class of the first three observations to NA
+mpg[1:3, ]$class <- NA
+
+# Set the hwy (miles per gallon) of the fourth observation to NA
+mpg[4, ]$hwy <- NA
+
+# Call cat_summarise with defaults
+cat_summarise(mpg, "class", "hwy") %>% 
+  gt() %>% 
+  tab_header("Calculate summary statistics", subtitle = "cat_summarize; NA's Row is omitted")  
+
+``` 
+
+
+### 5. Other API features
+There are some arguments that are found in most, if not all, the package functions.  
+
+5.1. clean_names   
+All functions in the package take a boolean argument called clean_names. This argument controls whether column names derived from values in the data should be cleaned with janitor::clean_names, which converts them to snake case.    
+
+The default value of this argument is TRUE. This is in order to produce more readable results tables and to avoid the creation of columns with spaces in the names, which are harder to use interactively.  
+
+If you prefer not to have this behaviour, you can disable it on each function call by setting clean_names to FALSE, or globally using the package options.  
+
+```options(tabbycat.clean_names = FALSE)``` 
+
+
+5.2. only
+Counting and comparison functions take a string argument called only. This is used to return just the number or percentage columns for frequencies in the results. Valid values for only are :  
+
+* "n" or "number" – to return just the number columns  
+* "p" or "percent" – to return just the percentage columns  
+* any other string – to return both the number and percentage columns  
+
+The defalut value is an empty string, meaning all columns are returned by default.  
+
+### 5.3. Labelling arguments for comparison functions  
+The comparison functions need names to use as labels for the NA columns, and in the case of cat_contrast, for the columns showing frequencies for the observations that are not in the target group.  
+
+These labels are controlled with the arguments na_label and other_label. The default values are "na" and "other" respectively, but you can change them if they colllide with data in your dataset. You can use the following package options if it makes more sense to change them globally when working with a particular dataset.  
+
+
+```{r}
+options(tabbycat.na_label = "missing") 
+
+options(tabbycat.other_label = "remainder")
+```
+
+
+
+ 
