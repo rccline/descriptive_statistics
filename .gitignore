@@ -1,2 +1,12 @@
+.Rproj.user/
+data/survey_results_public.csv
+descriptive_statistics.Rproj
+# data/survey_results_public
+data/owid-covid-data.csv
+docs_descriptive/*.docx
+docs_descriptive/*.html
+docs_descriptive/summarytools_vignette.Rmd
+docs_modelsummary/*.html
+docs_modelsummary/table.md
 tabbycat/
 assets/
