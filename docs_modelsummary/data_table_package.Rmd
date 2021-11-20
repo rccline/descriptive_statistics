@@ -1,0 +1,41 @@
+---
+title: "Data Table functions by Sharon Machlis"
+author: "Robert Cline"
+date: "11/16/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(data.table)
+library(dplyr)
+library(readr)
+library(here)
+```
+
+Use *here()* to specify where things live relative to that location.  *Here()* does not work with data.table's *fread()* function  
+
+
+
+
+
+Read first 10 rows with fread()
+```{r eval=FALSE}
+ 
+data_sample <- fread(here("data","survey_results_public.csv", nrows=10))
+# data_sample <- fread("../data/survey_results_public.csv", nrows=10)
+# rm(data_sample)
+```
+getwd()
+ 
+```{r eval=FALSE}
+
+mycsv <- read.csv(here("data","survey_results_public.csv") )                 
+```
+ 
+```{r}
+mycsv[,.]
+```
+ 
+ 
