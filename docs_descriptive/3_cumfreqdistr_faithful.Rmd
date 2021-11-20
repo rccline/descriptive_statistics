@@ -1,0 +1,99 @@
+---
+title: "Cumulative Freq Distribution of Old Faithful"
+author: "R Tutorial"
+date: "8/24/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+[R Tutorial Cumulative Freq Distr](http://www.r-tutor.com/elementary-statistics/quantitative-data/cumulative-frequency-distribution)  
+
+### Data Built-in data(faithful) 
+* eruptions = the duration of the geyser eruptions
+* waiting = length of the waiting period
+* there is a correlation between the two variables shown in the scatter plot
+
+```{r}
+duration = faithful$eruptions      # the eruption durations 
+waiting = faithful$waiting         # the waiting interval 
+plot(duration, waiting,           # plot the variables 
+   xlab="Eruption duration (seconds)",        # x−axis label 
+   ylab="Time waited (minutes")              # y−axis label
+abline(lm(waiting ~ duration))
+```
+
+```{r}
+data(faithful)
+```
+
+### Duration of eruptions
+The range of duration is from `r min(duration)` seconds to `r max(duration)` seconds 
+
+
+```{r}
+range(duration)
+```
+### Eruption intervals  
+Break the range into non-overlapping sub-intervals by defining a sequence of equal distance break points. If we round the endpoints of the interval [1.6, 5.1] to the closest half-integers, we come up with the interval [1.5, 5.5]. Hence we set the break points to be the half-integer sequence { 1.5, 2.0, 2.5, ... }.  
+
+```{r}
+breaks = seq(1.5, 5.5, by=0.5)    # half-integer sequence 
+breaks 
+```
+
+Classify the eruption durations according to the half-unit-length sub-intervals with cut.  
+As the intervals are to be closed on the left, and open on the right, we set the right argument as FALSE.  
+
+```{r}
+duration.cut = cut(duration, breaks, right=FALSE)
+
+# x <- table(mpg$model)
+x <- duration.cut
+
+cbind(Freq=table(x), Cumul=cumsum(table(x)), RelFreq=prop.table(table(x)))
+
+
+
+```
+
+
+Compute the frequency of eruptions in each sub-interval with the table function.  
+```{r}
+duration.freq <- table(duration.cut)
+```
+ 
+ The frequency distribution of the eruption duration is:  
+```{r}
+duration.freq
+# duration.cut
+
+```
+ 
+ Use the cbind function to print the result in column format  
+```{r}
+
+cbind(duration.freq)
+duration.freq
+```
+Per R documentation, you are advised to use the hist function to find the frequency distribution for performance reasons.
+
+Exercise
+Find the frequency distribution of the eruption waiting periods in faithful.  
+```{r}
+hist(duration,
+     right=FALSE,
+     ylim = c(0,80))
+```
+
+
+Find programmatically the duration sub-interval that has the most eruptions.  
+```{r}
+hist(duration,
+     right=FALSE,
+     ylim = c(0,80))
+
+```
+

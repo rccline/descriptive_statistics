@@ -1,0 +1,234 @@
+---
+title: "Frequency Tables"
+author: "ehsanx"
+date: "8/24/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)  
+
+
+library(tidyverse)
+library(palmerpenguins)
+library(summarytools)
+library(janitor)
+library(gt)
+library(here)
+```
+### Summarytools package for frequency distributions.
+* Missing row names
+* Computes data as an array.
+* Must convert to a data.frame with data.table package to pring.
+
+```{r}
+
+pengs <- freq(penguins$species, order = "freq")
+
+dt1 <- data.table::as.data.table(pengs)
+```
+ 
+ 
+### Print data.table with gt()  
+* eval = FALSE   will not knit.  
+ 
+```{r eval=FALSE}
+
+options(scipen=999)
+# library(gt)
+# pengs <- tibble(pengs)
+gt(dt1)
+``` 
+
+### Frequency Table with two variables
+```{r}
+
+mtcars %>%
+  group_by(am, gear) %>%
+  dplyr::summarise(n = n()) %>%
+  mutate(freq = n / sum(n)) %>% 
+  ungroup()  ## Ungroup for later manipulatons
+```
+### Relative Frequency Table 
+```{r}
+data(mtcars)
+
+mtcars %>%
+  group_by (am, gear) %>%
+  dplyr::summarise (n=n()) %>%
+  mutate(rel.freq = paste0(round(100 * n/sum(n), 0), "%")) %>% 
+  ungroup()
+
+```
+
+
+### Relative Frequency table with custom function
+```{r}
+as.rel_freq <- function(x, rel_freq_col = "rel.freq", ...) {
+    class(x) <- c("rel_freq", class(x))
+    attributes(x)[["rel_freq_col"]] <- rel_freq_col
+    x
+}
+
+print.rel_freq <- function(x, ...) {
+    freq_col <- attributes(x)[["rel_freq_col"]]
+    x[[freq_col]] <- paste0(round(100 * x[[freq_col]], 0), "%")   
+    class(x) <- class(x)[!class(x)%in% "rel_freq"]
+    print(x)
+}
+
+mtcars %>%
+  group_by (am, gear) %>%
+  dplyr::summarise (n=n()) %>%
+  mutate(rel.freq = n/sum(n)) %>%
+  as.rel_freq() %>% 
+  ungroup()
+``` 
+
+
+### Using scipen
+* Positive values bias towards fixed and negative towards scientific notation
+* turn off options(scipen = 999)
+* turn on  options(scipen = 0)
+* to show scientific notation:
+  - options(scipen = -100)
+```{r}
+
+# Turn scipen off with 
+getOption("scipen") 
+options("scipen"= -100) 
+mtcars %>%
+dplyr::count(am, gear) %>% 
+mutate(freq = (n / sum(n)) * 100)
+```
+
+```{r}
+mtcars %>% 
+  dplyr::count(am, gear) %>% 
+  add_count(am, wt = n) %>% 
+  mutate(percent = n / nn)
+```
+
+
+```{r}
+
+mtcars %>% 
+dplyr::count(am, gear)
+```
+
+```{r}
+mtcars %>%
+  group_by(am, gear) %>%
+  dplyr::summarise(n = n()) %>%
+  mutate(freq = n / sum(n)) %>% 
+  mutate(cumsum = cumsum(n)) %>% 
+  mutate(cumsum_freq = cumsum(freq))
+```
+
+
+### Percentage using adorn formatting 
+* Set eval = FALSE.  Will not knit.  Cannot find function *"adorn_ns"*
+```{r eval=FALSE}
+mtcars %>% 
+  dplyr::count(cyl, gear, name = "proportion") %>% 
+  adorn_percentages("col", na.rm = TRUE, proportion) %>% 
+  adorn_totals(where = "row", fill = "-", na.rm = TRUE, 
+               name = "Total", proportion) %>% 
+  adorn_pct_formatting(digits = 1, rounding = "half up", 
+                       affix_sign = TRUE, proportion) %>% 
+  adorn_ns(position = "rear", ns = attr(., "core"), proportion)
+``` 
+
+
+### Frequency, CumFrequency and RelFrequency  
+* Using *table()*  and  *cbind()*  
+```{r}
+
+x <- table(mpg$model)
+cbind( Freq=table(x), Cumul=cumsum(table(x)), RelFreq=prop.table(table(x)))
+ 
+```
+
+### Three ways to get frequecy tables  
+
+```{r}
+library(readr)
+nhanes <- read_csv(here("data", "nhanes.csv"))
+View(nhanes)
+
+``` 
+
+
+
+### prop.table()
+```{r}
+nhanes %>% 
+  clean_names() %>% 
+  group_by(education) %>% 
+  dplyr::summarize(n=n()) %>% 
+  mutate(percent = round(prop.table(n), 2)*100) %>% 
+  mutate(prop = round(prop.table(n), 2))
+  
+```
+
+### Count 
+```{r eval=FALSE}
+nhanes %>% 
+   dplyr::mutate(Edcount = count(Education))
+
+%>% 
+  dplyr::mutate(percent = prop.table(n)) %>% 
+  dplyr::mutate(rel.freq = paste0(round(100 * n/sum(n), 0), "%"))
+``` 
+
+```{r eval=FALSE}
+nhanes %>% 
+  clean_names() %>% 
+  filter(!is.na(education)) %>% 
+  mutate(n=count(education))
+```
+
+
+
+### tally() and cumsum()
+* tally() is short-hand for summarise() 
+
+```{r}
+nhanes %>%
+  group_by(Education) %>%
+  tally() %>% 
+  mutate(cumulative = cumsum(n))
+
+```
+
+### count() is a short-hand for group_by() + tally()  
+```{r}
+nhanes %>% 
+  dplyr::count(Education)
+
+# count(nhanes$Education)
+
+```
+
+### Note that if the data is already grouped, count() adds
+# an additional group that is removed afterwards
+mtcars %>% group_by(gear) %>% count(carb)
+
+```{r} 
+nhanes %>%
+  dplyr::count(Education, Gender)
+
+```
+
+
+
+
+### tably package from janitor package  
+* valid percent is the proportion without counting the NAs  
+```{r}
+
+nhanes %>% 
+  clean_names() %>% 
+  tabyl(education)
+```
+
