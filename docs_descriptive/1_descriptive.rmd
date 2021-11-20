@@ -1,0 +1,235 @@
+---
+title: "Exploratory Data Analysis"
+author: "Robert Sr"
+date: "8/20/2021"
+output:
+  word_document: default
+  html_document: null
+  pdf_document: default
+---
+
+
+## Add libriaries to first code chunk.  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)  
+
+library(tidyverse)  
+library(skimr)
+library(janitor)
+library(readr)
+library(plyr)
+
+library(DataExplorer)
+library(stringr)
+library(tidyr)
+library(pastecs)
+library(here)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+## DATA ----  
+* run the first code chunk to load your libraries
+* Add a new code chunk:  ctl+alt+i 
+* R comes with some sample datasets
+  - mpg 
+  - penquins from tidyverse package 
+
+To add a code chunk:  ctl + alt + i  
+```{r}
+data(mpg)
+mpg
+
+``` 
+
+
+
+### Use skim() from skimr package to look at the structure of your dataset  
+```{r}
+skim(mpg)
+```
+
+
+You can also use str()to look at the structure of your dataset.  srt() is a function that comes with "base R"  
+### Use str() from base R to see what variable types are in the dataset 
+```{r}
+str(mpg)  
+```
+
+### You can run code with ctrl + enter:
+* Try this out:  
+* Highlight the code with your cursor, then ctrl + enter  
+  
+
+summary(mpg)
+names(mpg)
+
+### Describe function from the psych package  
+```{r}
+library(psych)
+describe(mpg)
+``` 
+
+### Describe function from the psych package 
+```{r}
+library(palmerpenguins)
+describe(penguins)
+```
+
+
+Count() from base R
+```{r}
+count(mpg, "model")
+```
+
+
+```{r eval=FALSE}
+path2data <- "https://raw.githubusercontent.com/cmdlinetips/data/master/palmer_penguins.csv"
+penguins<- readr::read_csv(path2data)
+``` 
+
+
+### Frequency Distribution using count()
+```{r}
+count(penguins, "species")
+```
+
+
+
+
+### Frequency Distribution using group_by()
+```{r}
+penguins %>%
+  group_by(species) %>%
+  dplyr::summarise(n = n()) %>%
+  mutate(Percent = n/sum(n))
+```
+
+
+
+```{r}
+penguins %>%
+  group_by(sex, species) %>%
+  dplyr::summarise(n = n()) %>%
+  mutate(Percent = n/sum(n))
+```  
+
+
+
+
+### pastics pkg: Getting descriptive statistics from the *pastecs package*:  *stat.desc(name_of_dataset)*
+```{r }
+options(digits=3)
+options(scipen=100)
+# options(scipen=100),
+#options(digits=3),
+
+mpg %>% 
+  select(displ, year, cyl) %>% 
+  stat.desc()
+```
+
+
+penguins %>% 
+ drop_na(bill_length_mm) %>% 
+  mean(bill_length_mm)  
+  
+ 
+### Load Data 
+  
+```{r}
+# write_csv(x=basket, "mybasket.csv")  
+
+# basket <- read.csv("https://ufile.io/f/7owfr/mybasket.csv")
+
+basket <- read_csv(here("data", "mybasket.csv")) 
+
+# https://www.datasciencemadesimple.com/calculate-percentile-quantile-n-tile-of-dataframe-in-r-using-dplyr-create-column-with-percentile-rank/
+```
+
+### Find Quantile  
+```{r}
+mutate(basket, quantile_rank = ntile(basket$Price,4)) %>% 
+  arrange(quantile_rank)
+```
+  
+### ntile()  
+```{r}
+basket %>% 
+  group_by(ITEM_GROUP) %>%
+  mutate(price_rank_by_Item_group = ntile(Price, 4)) %>% 
+  arrange(price_rank_by_Item_group)
+
+```
+  
+
+### Percentile using ntile    
+```{r}
+mutate(basket, percentile_rank = ntile(basket$Price,100)) %>% 
+  arrange(percentile_rank)
+
+```
+  
+  
+### Finding the mean of bill_lenght_mm  
+* getting an error because I am passing a dataframe and R is expecting a vector.  
+* try wrapping the mean in summeraize
+```{r}
+penguins %>% 
+  select(bill_length_mm) %>% 
+  summarise(mean_bill_length = mean(as.numeric(bill_length_mm), na.rm=TRUE))
+
+# class(penguins$bill_length_mm)
+
+```
+
+* Filter !is.na()
+```{r}
+penguins %>% 
+  select(bill_length_mm) %>% 
+filter(!is.na(bill_length_mm)) %>% 
+ summarize(mean= mean(as.numeric(bill_length_mm), na.rm=TRUE) )
+
+# class(penguins$bill_length_mm)
+
+```
+
+### Use summarize to calculate the mean
+```{r}
+penguins %>% 
+  select(bill_length_mm, bill_depth_mm) %>% 
+  filter(!is.na(bill_length_mm)) %>% 
+  stat.desc()
+```
+
+
+
+
+### Custom frequency table function
+```{r eval=FALSE}
+
+freqdist <- function(x, freqorder=T)
+{
+  counts = table(x)
+  n=sum(counts)
+  if(freqorder) ord=order(-counts)
+  else ord=1:lengths(counts)
+  data.frame(
+    row.names=row.names(counts[ord]),
+    Counts=as.vector(counts[ord]),
+    Percent=100*as.vector(counts[ord])/n,
+    CumCount=cumsum(as.vector(counts[ord,])),
+    CumPercent=100*cumsum(as.vector(counts[ord]))/n
+      )
+}
+
+
+``` 
+
+freqdist(penguins)
+
+
+```{r}
+count(mpg$model)
