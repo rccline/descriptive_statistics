@@ -1,6 +1,6 @@
 .Rproj.user/
 data/survey_results_public.csv
-descriptive_statistics.Rproj
+# descriptive_statistics.Rproj
 # data/survey_results_public
 data/owid-covid-data.csv
 docs_descriptive/*.docx
