@@ -12,3 +12,13 @@ This repository is dedicated to demonstrating tools for creating descriptive sta
 * skimr package` are described in docs_descriptive folder.  
 * Cumulative frequency distribution examples   
 
+3. Scripts Folder  
+* Sample scripts from *openxlsx* package.
+  - create workbook object  
+  - add sheet  
+  - add data to sheet  
+  - insertPlot to sheet  
+  - saveWorkbook
+  
+
+
