@@ -18,7 +18,14 @@ This repository is dedicated to demonstrating tools for creating descriptive sta
   - add sheet  
   - add data to sheet  
   - insertPlot to sheet  
-  - saveWorkbook
+  - saveWorkbook 
+* create_distributions.R 
+  - Create z scores with scale
+  - coerce z score matrix to vector with as.numeric()
+  - rnorm: random number generation
+  - dnorm: density or probability mass function
+  - pnorm: cumulative distribution: *convert z scores to probability*
+  - qnorm: quantiles
   
 
 
