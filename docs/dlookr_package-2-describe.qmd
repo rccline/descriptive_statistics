@@ -1,0 +1,108 @@
+---
+title: "{dlookr} 2. Describe"
+format:
+  html:
+    toc: true
+    code-fold: true
+    code-summary: "Show the code"
+editor: visual
+execute: 
+  echo: false 
+  message: false
+  warning: false
+---
+
+Review of {dlookr} package by [Vincent Rubinetti in: yusaR Data Science](https://www.youtube.com/watch?v=M7eNYbd4n1Y) to explore, diagnose and fix problems in your data.  
+
+```{r}
+### Quarto links:  https://quarto.org/docs/output-formats/html-basics.html  
+
+library(tidyverse)
+library(flextable)
+library(dlookr)
+library(gt)
+```
+
+```{r}
+
+describe(iris) %>% 
+  flextable() 
+
+
+```
+
+### Group data by any categorical variable and get descriptive stats for each categor
+```{r}
+iris %>% 
+  group_by(Species) %>% 
+  select(Sepal.Length) %>% 
+  describe() %>% 
+  flextable()
+
+```
+
+
+### Normality
+```{r}
+
+normality(iris) %>% 
+  flextable()
+```
+
+```{r}
+iris %>% 
+  group_by(Species) %>% 
+  normality() %>% 
+  flextable()
+``` 
+
+```{r}
+
+airquality %>% 
+  plot_normality(Ozone)
+```
+
+```{r}
+
+plot_normality(iris)
+```
+
+
+### correlate
+```{r}
+correlate(airquality, Ozone) %>% 
+  flextable()
+```
+
+```{r}
+plot_correlate(iris)
+```
+
+### Kendall Correlation plot 
+```{r}
+plot_correlate(iris, method = "kendall")
+```
+
+### Pearson correlation plot  
+ - The difference between the Pearson correlation and the Spearman correlation is that the Pearson is most appropriate for measurements taken from an interval scale, while the Spearman is more appropriate for measurements taken from ordinal scales.  
+ - *Pearson* e.g. Temperture; length in inches = *interval*  
+ - *Spearman* e.g. Satisfaction scores = *ordinal*  
+ - Actually best to convert satisfaction scores to Quantile scores.  
+```{r}
+
+iris %>% 
+  group_by(Species) %>% 
+  plot_correlate(method = "pearson")
+```
+
+### Exploratory Data Report 
+
+```{r}
+ 
+airquality %>% 
+  eda_web_report(
+    target = "Temp",
+    output_format = "html"
+  )
+```
+

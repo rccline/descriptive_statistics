@@ -1,0 +1,224 @@
+---
+title: "{dlookr} 3. Repair Missing values"
+format:
+  html:
+    toc: true
+    code-fold: true
+    code-summary: "Show the code"
+editor: visual
+execute: 
+  echo: false 
+  message: false
+  warning: false
+---
+
+Review of {dlookr} package by [Vincent Rubinetti in: yusaR Data Science](https://www.youtube.com/watch?v=M7eNYbd4n1Y) to explore, diagnose and fix problems in your data.  
+
+```{r}
+### Quarto links:  https://quarto.org/docs/output-formats/html-basics.html  
+
+library(tidyverse)
+library(flextable)
+library(dlookr)
+library(gt)
+```
+
+### Repair  
+* Can impute both numeric and categorical values  
+* Impute Missing Values  
+* Impute Outliers   
+* Categorization  
+
+Machine Learning  
+* knn - K-nearest neighbors  
+* rpart - Recursive Partitioning and Regression Trees
+* mice - mulitvariate Imputation by Chained Equations
+
+## 1. Numerical Values  
+
+
+### Imputation by means  
+  - Not a good method - imputation is very different from original  
+```{r}
+airquality <- airquality
+bla <- imputate_na(airquality, Ozone, Temp, method = "mean") 
+
+summary(bla)
+
+plot(bla)
+```
+
+### Imputation by K nearest neighbors  
+  - some aspects of the distributin became more emphasized  
+  
+```{r}
+
+plot(imputate_na(airquality, Ozone, Temp, method = "knn"))
+```
+
+### Best to compare the different imputation methods and choose the best: 
+
+```{r}
+
+# mean
+plot(imputate_na(airquality, xvar = Ozone, yvar = Solar.R, method = "mean"))
+
+# median 
+plot(imputate_na(airquality, Ozone, Temp, method = "median")) 
+
+# "knn" K-nearest neighbors
+plot(imputate_na(airquality, Ozone, Temp, method = "knn"))  
+
+# "rpart" : Recursive Partitioning and Regression Trees
+plot(imputate_na(airquality, Ozone, Temp, method = "rpart"))
+
+# "mice" : Multivariate Imputation by Chained Equastions
+plot(imputate_na(airquality, Ozone, Temp, method = "mice", seed = 999)) + 
+  theme_minimal() +
+  theme(legend.position = "top")
+
+
+```
+
+## 2. Categorical Values 
+* mode  
+* rpart  
+* mice  
+
+```{r}
+d <- diamonds %>% 
+  sample_n(1000, replace = FALSE)
+
+length(d)### add some NAs and use mice imputation  
+nrow(d)
+
+d$cut[sample(nrow(d),50)] <- "NA"
+d2 <- imputate_na(d, cut, price, method = "mice", seed = 999)
+
+plot(d2)
+
+```
+
+### Summary() gives you the summary of values before and after imputation  
+
+```{r}
+
+d2 %>% 
+  summary() 
+
+data_summary <- data.frame(unclass(summary(d2)),
+                           check.names = FALSE) 
+data_summary %>% 
+  gt::gt()
+
+data_summary %>% 
+  flextable()
+
+# data_summary %>% 
+#   gt::gt()
+
+
+```
+
+### 3. Outliers Replace with imputate outliers function  
+Outliers can be treated like missing values using the following imputation methods:  
+
+* mean  
+* median  
+* mode or  
+* capping  
+  - computes the top outliers with the 95th percentile and 
+  - the bottom outliers with the 5th percentile 
+
+Compare all methods to decide which method is the best.  
+
+```{r} 
+
+plot(imputate_outlier(diamonds, carat, method = "mean"))
+
+plot(imputate_outlier(diamonds, carat, method = "median"))
+
+plot(imputate_outlier(diamonds, carat, method = "mode"))
+
+plot(imputate_outlier(diamonds, carat, method = "capping"))
+
+```
+
+### Categorization, or Binning, transforms a numerical variable into categorical 
+
+Types of binning are supported:  
+
+* quantile - catagorizes via quantiles  
+* equal - categorizes to equal segments  
+* pretty - categorizes into moderately good segments  
+* kmeans - via K-mean clustering  
+* bclust - via bagging - Bootstrap Aggregatingl - a ML meta-algorithm designed to improve predictive performance   
+
+
+In the plot below, we see the function divided into three areas:
+* 0-50 = parabola 
+* 50-75 = flat  
+* 75-150 = decline 
+
+
+```{r}
+DataExplorer::plot_density(airquality$Ozone) 
+
+```
+So, we divide into three bins  
+```{r}
+
+bin <- binning(airquality$Ozone, type = "bclust", nbins = 3,
+               labels = c("cat1", "cat2", "cat3"))  
+plot(bin)
+```
+
+The third category has only two observations:  
+```{r}
+
+p1 <- binning(airquality$Ozone, type = "bclust", nbins = 3) 
+
+summary(p1) 
+
+data_summary2 <- data.frame(unclass(summary(p1)),
+                           check.names = FALSE) 
+data_summary2 %>% 
+  gt::gt()
+
+```
+
+
+```{r}
+
+DataExplorer::plot_density(airquality$Ozone) 
+
+# with names  
+
+bin <- binning(airquality$Ozone, type = "bclust", nbins = 3,
+               labels = c("cat1", "cat2", "cat3"))  
+
+plot(bin)  
+
+summary(bin) 
+
+# without names 
+
+binning(airquality$Ozone, type = "bclust", nbins = 3)
+```
+
+### Compare all categorizations  
+
+```{r}
+
+plot(binning(airquality$Ozone, type = "quantile", nbins = 3,
+              labels = c("cat1", "cat2", "cat3")))
+
+plot(binning(airquality$Ozone, type = "equal", nbins = 3,
+              labels = c("cat1", "cat2", "cat3")))
+
+plot(binning(airquality$Ozone, type = "pretty", nbins = 3))
+
+plot(binning(airquality$Ozone, type = "kmeans", nbins = 3,
+              labels = c("cat1", "cat2", "cat3")))
+```
+

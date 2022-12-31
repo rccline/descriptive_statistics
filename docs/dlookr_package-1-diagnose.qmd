@@ -1,0 +1,175 @@
+---
+title: "{dlookr} package - 1. Diagnose"
+format:
+  html:
+    toc: true
+    code-fold: true
+    code-summary: "Show the code"
+editor: visual
+execute: 
+  echo: false 
+  message: false
+  warning: false
+--- 
+
+Review of {dlookr} package by [Vincent Rubinetti in: yusaR Data Science](https://www.youtube.com/watch?v=M7eNYbd4n1Y) to explore, diagnose and fix problems in your data.  
+
+```{r}
+### Quarto links:  https://quarto.org/docs/output-formats/html-basics.html  
+
+library(tidyverse)
+library(flextable)
+library(dlookr)
+library(gt)
+```
+
+### 1. Diagnose  
+
+* Are variable types correct?  
+* Missing values  
+* Unique count  
+
+
+```{r}
+diagnose(airquality) %>% 
+flextable() 
+```
+
+* Diagnose_category()  
+
+```{r}
+
+diagnose_category(diamonds) %>% 
+   flextable()
+```
+
+* Diagnose_numerical()  
+
+```{r}
+
+diagnose_numeric(airquality) %>% 
+  flextable()
+```
+
+* Diagnose_outliers() 
+  - outliers_ratio  
+  - Ratio of "false" scores to total number of scores  
+  - caret: outliers/total = 1889/53930 = 3.50  
+  
+```{r}
+diagnose_outlier(diamonds) %>% 
+  flextable()
+```
+
+* Evaluate the strength of the outliers for each variable:  
+* diagnose_outliers() calculates three means 
+  - outliers_mean()
+  - outliers with_mean  
+  - outliers without_mean 
+* E.g.:  for depth, the means with and without outliers is almost identical.  
+* E.g.2:  for price, the mean is heavily influenced by outliers  
+
+* Visualize the data with and without outliers  
+  - boxplots & histograms  
+* If we remove outliers, they become missing values
+  
+```{r}
+
+plot_outlier(airquality)
+```
+
+* Visualizing outliers with the *Pareto chart*  
+
+```{r fig.cap="Display proportion of NAs"}
+# fig.height = 1.5
+
+plot_na_pareto(airquality)
+```
+
+
+* We do not know where the missing values are; i.e. with which variables they are associated.
+```{r fig.cap="Pareto chart display only variables with NAs"}
+
+airquality %>% 
+  plot_na_pareto(only_na = TRUE)
+```
+
+
+* Distribution of missing values by variable  
+
+```{r}
+plot_na_hclust(airquality)
+```
+
+* Use plot_na_intersect() to see combination of NAs across columns  
+  - In the below example, there are 2 NAs in Ozone and Solar
+
+```{r eval=FALSE}
+
+airquality %>% 
+  select(Ozone, Solar.R) %>% 
+  mutate(OzoneNA = if_else(Ozone == "NA", 1, 0))
+```
+
+```{r}
+library(kableExtra)
+
+NAs <- airquality %>% 
+  select(Ozone, Solar.R) %>% 
+  mutate(OzoneNA = case_when(
+    Ozone == "NA" ~ 1,
+    Ozone != "NA" ~ 0,
+    TRUE ~ 1
+  )) %>% 
+  mutate(Solar.R_NA = case_when(
+    Solar.R == "NA" ~ 1,
+    Solar.R != "NA" ~ 0,
+    TRUE ~ 1
+  )) 
+
+NAs2 <- NAs %>% 
+#  select(OzoneNA, Solar.R_NA) 
+  mutate(Both = case_when(
+    OzoneNA & Solar.R_NA == 1 ~ 1, 
+    OzoneNA & Solar.R_NA != 1 ~ 0,
+    TRUE ~ 1)
+    
+  ) 
+
+NAs2 <- NAs %>% 
+#  select(OzoneNA, Solar.R_NA) 
+  mutate(Both = case_when(
+    OzoneNA + Solar.R_NA > 1 ~ 1, 
+    OzoneNA + Solar.R_NA <= 1 ~ 0,
+    TRUE ~ 1)
+    
+  ) 
+
+NAs2 %>% 
+ summarise_if(is.numeric, sum, na.rm= TRUE) %>% 
+ 
+  table() %>% 
+  kbl(caption = "Count of NAs by Variable") %>% 
+  kable_classic(full_width = F, html_font = "Cambria", position = "left")  
+
+# NAs2 %>% 
+#   mutate(sum = OzoneNA + Solar.R_NA) %>% 
+#   filter(sum > 1)
+  
+```
+
+
+```{r}
+ airquality <- airquality
+plot_na_intersect(airquality)
+```
+
+
+* Diagnose Data with `diagnose_web_report()` or `diagnose_paged_report`
+
+```{r}
+diagnose_web_report(airquality)
+
+```
+
+
