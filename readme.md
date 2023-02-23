@@ -54,7 +54,10 @@ dlooker package may be my favorite for descriptive statistics.
     - Impute Outliers   
     - Categorization  
 
-    
+5. **docs_gtsummary folder**  
+  - a Brief summary of the {*gtsummary*} package.  
+  
+  
   
 
 
