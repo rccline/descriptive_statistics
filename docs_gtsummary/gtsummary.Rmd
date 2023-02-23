@@ -1,0 +1,93 @@
+---
+title: "gtsummary"
+author: "Our Coding Club"
+date: "2023-02-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE) 
+
+library(tidyverse)
+library(gtsummary)  
+library(kableExtra)
+
+
+```
+
+
+
+```{r}
+data(CO2) 
+
+CO2 %>% 
+  distinct(Treatment, .keep_all = TRUE) %>% 
+   
+# table(titanic, titanic) %>% 
+  kbl(caption ="Basic Summary Table CO2 dataset - distinct Treatments") %>% 
+  kable_classic(full_width = F, html_font = "Cambria", position = "left")  
+  
+
+
+```
+# Basic summary table
+
+```{r}
+
+CO2 %>% 
+  select(!c(Plant,conc)) %>% 
+  tbl_summary()
+```
+
+# Summary split by a categorical variable 
+```{r echo=TRUE}
+
+CO2 %>% 
+  select(!c(Plant,conc)) %>% 
+  tbl_summary(by = Type)
+```
+# Summary split by a categorical variable with p-value 
+
+```{r}
+
+CO2 %>% 
+  select(!c(Plant,conc)) %>% 
+  tbl_summary(by = Type) %>% 
+  add_p()
+  
+```
+
+# Include overall, extra heading, custom stats  
+
+```{r}
+
+CO2 %>% 
+  select(!c(Plant, conc)) %>% 
+  tbl_summary(
+  by = Type, 
+  statistic = list(
+    all_continuous() ~ "{mean} ({sd})", 
+    all_categorical() ~ "{n}, / {N} ({p}%)"
+  ), 
+  digits = all_continuous() ~ 2) %>% 
+  add_p() %>% 
+  add_overall() %>% 
+  modify_spanning_header(c("stat_1", "stat_2") ~ "**Location**")
+  
+```
+
+# crosstabs  
+
+```{r}                  
+CO2 %>% 
+  tbl_cross(
+    row = Type,
+    col = Treatment,
+    percent = "cell"
+  ) %>% 
+  add_p() 
+    
+  
+
+```
+
